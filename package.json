@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check": "node scripts/check-quiz.mjs",
-    "compress:png": "node scripts/compress-png.mjs"
+    "compress:png": "node scripts/compress-png.mjs",
+    "convert:webp": "node scripts/convert-webp.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.65.0",

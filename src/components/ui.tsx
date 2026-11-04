@@ -29,7 +29,7 @@ export function Asset({ src, alt, className = "", fallback }: { src: string; alt
 export function Logo({ className = "h-[21px] w-auto lg:h-[26px]", link = true }: { className?: string; link?: boolean }) {
   const image = (
     <Asset
-      src="/images/brand/spinach-logo.png"
+      src="/images/brand/spinach-logo.webp"
       alt="Spinach"
       className={className}
       fallback={<span translate="no" className="font-display text-lg font-bold tracking-wide text-teal">SPINACH</span>}
@@ -48,7 +48,7 @@ export function Backdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 bg-[url('/images/backgrounds/phone-background.png')] bg-cover bg-center lg:bg-[url('/images/backgrounds/app-background.png')]"
+      className="pointer-events-none fixed inset-0 -z-10 bg-[url('/images/backgrounds/phone-background.webp')] bg-cover bg-center lg:bg-[url('/images/backgrounds/app-background.webp')]"
     />
   );
 }

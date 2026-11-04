@@ -58,11 +58,11 @@ export function Done() {
               fades in, then the sparkles and dots burst outwards from the centre. Start sizes are Figma's start frame. */}
           <motion.span aria-hidden style={RING_OUTER} className={`${CENTRED} rounded-full border-[1.5px] border-teal/14`} {...grow(110 / 262, 0.1)} />
           <motion.span aria-hidden style={RING_MID} className={`${CENTRED} rounded-full border-[1.5px] border-teal/24`} {...grow(110 / 196, 0.05)} />
-          <motion.img aria-hidden alt="" src="/images/ui/thank-you/check-halo.png" style={HALO} className={CENTRED} {...grow(0.4, 0)} />
+          <motion.img aria-hidden alt="" src="/images/ui/thank-you/check-halo.webp" style={HALO} className={CENTRED} {...grow(0.4, 0)} />
 
           <motion.div initial={{ scale: 64 / 120 }} animate={{ scale: 1 }} transition={{ ...EASE, duration: 0.7 }} className="absolute inset-0">
             {/* eslint-disable-next-line @next/next/no-img-element -- decorative Figma export */}
-            <img aria-hidden alt="" src="/images/ui/thank-you/check-disc.png" style={DISC} className={CENTRED} />
+            <img aria-hidden alt="" src="/images/ui/thank-you/check-disc.webp" style={DISC} className={CENTRED} />
             <motion.span style={CHECK} className={`${CENTRED} text-white`} {...grow(24 / 56, 0.25)}>
               <Check aria-hidden className="size-full" strokeWidth={1.25} />
             </motion.span>
@@ -79,7 +79,7 @@ export function Done() {
               className="absolute inset-0"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- decorative Figma export */}
-              <img alt="" src={`/images/ui/thank-you/${name}.png`} style={at(PHONE_BITS[i], DESK_BITS[i])} className={`${PLACE} aspect-square`} />
+              <img alt="" src={`/images/ui/thank-you/${name}.webp`} style={at(PHONE_BITS[i], DESK_BITS[i])} className={`${PLACE} aspect-square`} />
             </motion.div>
           ))}
         </div>

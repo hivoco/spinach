@@ -47,4 +47,6 @@ next-env.d.ts
 
 .claude
 
-.agent.md
+.agents.md
+# PNG sources kept by scripts/convert-webp.mjs
+/png-originals

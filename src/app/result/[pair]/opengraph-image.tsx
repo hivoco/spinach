@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import sharp from "sharp";
 import { allResults, blendTagline, blendTitle, pairSlug, parsePairSlug, type ArchetypeKey } from "@/lib/quiz";
 
 // Share preview for each result page: the archetype card(s) with the result's name and tagline.
@@ -13,9 +14,10 @@ export function generateStaticParams() {
 }
 
 // Each read is scoped to a fixed folder so the bundler only traces those files, not all of public/.
-const dataUrl = (buf: Buffer) => `data:image/png;base64,${buf.toString("base64")}`;
+// The image renderer detects WebP but draws it blank, so the WebP assets are decoded back to PNG here (sharp ships with Next).
+const dataUrl = async (buf: Buffer) => `data:image/png;base64,${(await sharp(buf).png().toBuffer()).toString("base64")}`;
 const font = (name: string) => readFile(join(process.cwd(), "src", "fonts", "og", name));
-const cardImage = async (key: ArchetypeKey) => dataUrl(await readFile(join(process.cwd(), "public", "images", "archetypes", "cards", `${key}.png`)));
+const cardImage = async (key: ArchetypeKey) => dataUrl(await readFile(join(process.cwd(), "public", "images", "archetypes", "cards", `${key}.webp`)));
 const brandImage = async (name: string) => dataUrl(await readFile(join(process.cwd(), "public", "images", name)));
 
 export default async function Image({ params }: { params: Promise<{ pair: string }> }) {
@@ -26,8 +28,8 @@ export default async function Image({ params }: { params: Promise<{ pair: string
     font("Montserrat-Bold.woff"),
     font("Montserrat-SemiBold.woff"),
     font("PTSans-Regular.woff"),
-    brandImage("backgrounds/app-background.png"),
-    brandImage("brand/spinach-logo.png"),
+    brandImage("backgrounds/app-background.webp"),
+    brandImage("brand/spinach-logo.webp"),
     cardImage(pair[0]),
     pair[1] ? cardImage(pair[1]) : null,
   ]);

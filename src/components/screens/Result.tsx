@@ -71,7 +71,7 @@ export function Result({ pair, shared = false, onNext, onBack, onClose }: Props)
                     width × centre puts the drawing's visual centre on --x, whatever the image width. */}
                 <div style={{ translate: `${-STICKERS[key].centre * 100}% 0` }} className="absolute bottom-0 left-(--x) h-(--h) lg:left-(--X) lg:h-(--H)">
                   <Asset
-                    src={`/images/archetypes/stickers/${key}.png`}
+                    src={`/images/archetypes/stickers/${key}.webp`}
                     alt={archetypes[key].name}
                     // Sized by height, not fitted to the slot width, so every sticker stands as tall as the others; wide ones spill past the slot sides.
                     className="block h-full w-auto max-w-none"
@@ -102,7 +102,7 @@ export function Result({ pair, shared = false, onNext, onBack, onClose }: Props)
             {!single && <span
               aria-hidden
               style={vars({ "--ix": pct(phone.icon), "--IX": pct(desk.icon), "--iy": pct(phone.iconY), "--IY": pct(desk.iconY) })}
-              className="absolute top-(--iy) left-(--ix) aspect-square w-[21.6%] -translate-1/2 bg-teal [mask:url('/images/ui/result/blend-icon-mask.png')_center/contain_no-repeat] lg:top-(--IY) lg:left-(--IX) lg:w-[20.3%]"
+              className="absolute top-(--iy) left-(--ix) aspect-square w-[21.6%] -translate-1/2 bg-teal [mask:url('/images/ui/result/blend-icon-mask.webp')_center/contain_no-repeat] lg:top-(--IY) lg:left-(--IX) lg:w-[20.3%]"
             />}
             <p className="absolute top-[67.8%] left-1/2 line-clamp-5 w-[85.6%] -translate-x-1/2 text-center text-[14px] leading-[20px] text-ink lg:hidden">{description}</p>
           </GlassShape>

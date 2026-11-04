@@ -18,7 +18,7 @@ export type Archetype = {
   strength: string;
 };
 
-const card = (key: string) => `/images/archetypes/cards/${key}.png`;
+const card = (key: string) => `/images/archetypes/cards/${key}.webp`;
 
 export const archetypes: Record<ArchetypeKey, Archetype> = {
   explorer: {

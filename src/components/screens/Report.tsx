@@ -36,7 +36,7 @@ export function Report({ title, resultHref, name, email, onName, onEmail, onSubm
         <Reveal direction="left" className="relative mx-auto grid size-[190px] place-items-center lg:hidden">
           <div aria-hidden className="absolute inset-[-9.47%_-14.74%_-20%_-14.74%]">
             {/* eslint-disable-next-line @next/next/no-img-element -- decorative Figma export */}
-            <img alt="" src="/images/ui/report/orb-mobile.png" className="block size-full" />
+            <img alt="" src="/images/ui/report/orb-mobile.webp" className="block size-full" />
           </div>
           <span aria-hidden className="absolute size-[143.7px] rounded-full border-[1.5px] border-teal/22" />
           <span className="relative grid size-[92.5px] place-items-center rounded-full bg-teal/40 text-white">

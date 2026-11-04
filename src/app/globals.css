@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Desktop layout needs a wide AND landscape screen: portrait tablets (e.g. iPad Pro 1024x1366) get the phone layout
+   instead of a short desktop strip. Keep in sync with DESKTOP_QUERY in src/lib/breakpoints.ts. */
+@custom-variant lg (@media (width >= 64rem) and (min-aspect-ratio: 1/1));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --breakpoint-lg: initial; /* replaced by the lg variant above */
+  /* Widest the desktop content gets on wide windows (max-w-page); the question screen is a little narrower. */
+  --container-page: 1600px;
+  --container-page-question: 1520px;
+  --color-mist: #edf0ed;
+  --color-teal: #2f6f6a;
+  --color-teal-deep: #245853;
+  --color-sage: #7fafa8;
+  --color-ink: #2e3440;
+  --color-ink-2: #3c3f45;
+  --color-clay: #b46a55;
+  --color-milk: #f5f4f1;
+  --font-display: var(--font-montserrat);
+  --font-sans: var(--font-pt-sans);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Figma's two recurring shadows: soft glass surfaces, and the teal call-to-action button. */
+  --shadow-glass: 0 12px 32px rgb(46 112 107 / 0.14);
+  --shadow-cta: 0 12px 26px rgb(46 112 107 / 0.35);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-mist);
+  color: var(--color-ink);
+}
+
+@layer base {
+  /* No double-tap zoom delay or grey tap flash on phones. */
+  a,
+  button,
+  input,
+  label {
+    touch-action: manipulation;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (pointer: fine) {
+    html {
+      overscroll-behavior: none;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 3px;
+  }
 }

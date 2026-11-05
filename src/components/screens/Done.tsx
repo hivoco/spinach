@@ -94,9 +94,6 @@ export function Done() {
           <h1 className="font-display text-[38px] leading-[46px] font-bold text-balance text-ink lg:text-[62px] lg:leading-[72px]">
             Thank you for taking the quiz
           </h1>
-          <p className="mx-auto mt-[18px] max-w-[300px] text-base leading-[22px] text-ink/80 lg:mx-0 lg:mt-[26px] lg:max-w-[480px] lg:text-[21px] lg:leading-[31px] lg:text-ink/65">
-            Your Career Archetype report is ready to download or share.
-          </p>
         </motion.div>
       </section>
     </>

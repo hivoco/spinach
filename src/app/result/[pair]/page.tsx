@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { allResults, blendDescription, blendTagline, blendTitle, pairSlug, parsePairSlug } from "@/lib/quiz";
+import { allResults, blendDescription, blendTagline, blendTitle, pairSlug, parsePairSlug, resultPath } from "@/lib/quiz";
 import { ResultView } from "@/components/ResultView";
 
 type Props = { params: Promise<{ pair: string }> };
@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${title} | Spinach career archetype`,
     description,
-    openGraph: { title: `${title}: my career archetype`, description, siteName: "Spinach", type: "website" },
+    alternates: { canonical: resultPath(pair) },
+    openGraph: { title: `${title}: my career archetype`, description, url: resultPath(pair), siteName: "Spinach", locale: "en_IN", type: "website" },
     twitter: { card: "summary_large_image", title: `${title}: my career archetype`, description },
   };
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, X } from "lucide-react";
+import { asset } from "@/lib/assets";
 
 /** <img> that keeps its space (as an empty, labelled box, or `fallback`) when the file fails to load. */
 export function Asset({ src, alt, className = "", fallback }: { src: string; alt: string; className?: string; fallback?: ReactNode }) {
@@ -29,7 +30,7 @@ export function Asset({ src, alt, className = "", fallback }: { src: string; alt
 export function Logo({ className = "h-[21px] w-auto lg:h-[26px]", link = true }: { className?: string; link?: boolean }) {
   const image = (
     <Asset
-      src="/images/brand/spinach-logo.webp"
+      src={asset("/images/brand/spinach-logo.webp")}
       alt="Spinach"
       className={className}
       fallback={<span translate="no" className="font-display text-lg font-bold tracking-wide text-teal">SPINACH</span>}
@@ -48,7 +49,8 @@ export function Backdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 bg-[url('/images/backgrounds/phone-background.webp')] bg-cover bg-center lg:bg-[url('/images/backgrounds/app-background.webp')]"
+      style={{ "--bg-phone": `url('${asset("/images/backgrounds/phone-background.webp")}')`, "--bg-desktop": `url('${asset("/images/backgrounds/app-background.webp")}')` } as CSSProperties}
+      className="pointer-events-none fixed inset-0 -z-10 bg-(image:--bg-phone) bg-cover bg-center lg:bg-(image:--bg-desktop)"
     />
   );
 }

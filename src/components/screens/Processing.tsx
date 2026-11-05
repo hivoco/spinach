@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Check, LoaderCircle } from "lucide-react";
-import { archetypeOrder, questions } from "@/lib/quiz";
-import { Logo, MobileBar, TopBar } from "@/components/ui";
+import { Check, LoaderCircle, RotateCcw } from "lucide-react";
+import { archetypeOrder } from "@/lib/quiz";
+import { Button, Logo, MobileBar, TopBar } from "@/components/ui";
 
 const STEPS = ["Answers received", "Matching your archetypes", "Preparing your report"];
 // Timings from the animated mockup: each running step takes ~3s, then a short hold on the full ring.
@@ -27,13 +27,24 @@ const BLOBS = [
   { className: "left-[72%] -top-[16%] size-[240px] bg-clay/38 lg:size-[420px]", x: -30, y: 26, duration: 12 },
 ];
 
-export function Processing({ onDone }: { onDone: () => void }) {
+type Props = {
+  /** How many answers are being matched. */
+  count: number;
+  /** The server has returned the result; until then the last step keeps running. */
+  ready: boolean;
+  failed: boolean;
+  onRetry: () => void;
+  onDone: () => void;
+};
+
+export function Processing({ count, ready, failed, onRetry, onDone }: Props) {
   const [done, setDone] = useState(1);
 
   useEffect(() => {
+    if (done === STEPS.length - 1 && !ready) return;
     const t = setTimeout(done < STEPS.length ? () => setDone(done + 1) : onDone, done < STEPS.length ? STEP_MS : HOLD_MS);
     return () => clearTimeout(t);
-  }, [done, onDone]);
+  }, [done, ready, onDone]);
 
   // The ring fills while the active step runs, so it heads for the next step's fill over a whole step.
   const fill = FILL[Math.min(done, STEPS.length - 1)];
@@ -97,7 +108,7 @@ export function Processing({ onDone }: { onDone: () => void }) {
         <p className="mt-8 font-display text-[10px] font-bold tracking-[2px] text-teal uppercase lg:mt-[46px] lg:text-xs lg:tracking-[2.4px]">Almost there</p>
         <h1 className="mt-3 font-display text-balance text-[28px] font-bold text-ink lg:mt-2.5 lg:text-[52px] lg:leading-[63px]">Processing Results</h1>
         <p className="mt-3 max-w-[260px] text-base leading-[22px] text-ink/65 lg:mt-[15px] lg:max-w-none lg:text-xl lg:leading-[26px]">
-          Matching your {questions.length} answers to the {archetypeOrder.length} archetypes.
+          Matching your {count} answers to the {archetypeOrder.length} archetypes.
         </p>
 
         <ol
@@ -130,6 +141,16 @@ export function Processing({ onDone }: { onDone: () => void }) {
             );
           })}
         </ol>
+
+        {failed && (
+          <div role="alert" className="mt-6 flex flex-col items-center gap-4 lg:mt-8">
+            <p className="text-base text-clay lg:text-lg">We couldn’t work out your result. Check your connection and try again.</p>
+            <Button onClick={onRetry} className="w-60">
+              <RotateCcw className="size-5" />
+              Try Again
+            </Button>
+          </div>
+        )}
       </section>
     </>
   );

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Pause, Play, SkipForward } from "lucide-react";
+import { asset } from "@/lib/assets";
 import { TopBar } from "@/components/ui";
 
 export function Intro({ onDone }: { onDone: () => void }) {
@@ -41,7 +42,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
         <div className="group relative mt-[23px] h-[670px] w-full overflow-hidden rounded-[28px] bg-ink-2 lg:mt-0 lg:aspect-video lg:h-auto lg:rounded-[36px] lg:shadow-[0_20px_50px_rgb(46_112_107/0.25)]">
           <video
             ref={ref}
-            src="/videos/intro.mp4"
+            src={asset("/videos/intro.mp4")}
             playsInline
             // Desktop keeps the wide frame but shows the whole portrait video, with dark bars at the sides.
             className="size-full object-cover lg:object-contain"

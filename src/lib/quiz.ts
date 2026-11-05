@@ -1,3 +1,5 @@
+import { asset } from "./assets.ts"; // explicit extension so `npm run check` can run this file directly in Node
+
 export type ArchetypeKey =
   | "explorer"
   | "strategist"
@@ -18,7 +20,7 @@ export type Archetype = {
   strength: string;
 };
 
-const card = (key: string) => `/images/archetypes/cards/${key}.webp`;
+const card = (key: string) => asset(`/images/archetypes/cards/${key}.webp`);
 
 export const archetypes: Record<ArchetypeKey, Archetype> = {
   explorer: {
@@ -95,41 +97,51 @@ export const archetypes: Record<ArchetypeKey, Archetype> = {
 
 export const archetypeOrder = Object.keys(archetypes) as ArchetypeKey[];
 
-export type Question = {
-  id: string;
-  prompt: string;
-  /** `also`: the answer's secondary archetype, worth half a point, so a short quiz still yields a meaningful pair. */
-  options: { label: string; archetype: ArchetypeKey; also?: ArchetypeKey }[];
-};
+// ---- Questions and scoring come from the database (src/app/api, ported from the archetype app) ----
 
-export const questions: Question[] = [
-  {
-    id: "brief",
-    prompt: "You are given a task without a clear brief and a strict deadline. You…",
-    options: [
-      { label: "Try a quick first version and learn from it", archetype: "explorer", also: "artist" },
-      { label: "Map out the steps and timeline before starting", archetype: "strategist", also: "ruler" },
-      { label: "Ask the team what success looks like", archetype: "harmoniser", also: "sage" },
-      { label: "Write your own brief and run with it", archetype: "maverick", also: "visionary" },
-      { label: "Push through, whatever it takes to hit the date", archetype: "indomitable-spirit", also: "protagonist" },
-    ],
-  },
-];
+/** How many questions the database holds; only used for copy shown before they're loaded (the welcome page). */
+export const QUIZ_LENGTH = 11;
+
+/** A question as GET /api/quiz/questions returns it: the options carry no answer key. */
+export type ApiQuestion = { _id: string; questionText: string; options: { text: string }[] };
+
+/** `text` is the question as stored (and saved with answers); `prompt` is how the quiz shows it. */
+export type Question = { id: string; text: string; prompt: string; options: { label: string }[] };
 
 /**
- * Two highest-scoring archetypes. `answers[i]` is the archetype picked for questions[i] (holes = unanswered):
- * each pick scores 1 and its option's `also` scores 0.5. Ties go to the earlier one in archetypeOrder.
+ * Same wording as the archetype app: most prompts continue "… You…", while one that already ends mid-sentence
+ * ("…the highlight of the journey was your") just trails off.
  */
-export function topTwo(answers: ArchetypeKey[]): [ArchetypeKey, ArchetypeKey] {
-  const score = new Map<ArchetypeKey, number>();
-  const add = (k: ArchetypeKey | undefined, n: number) => k && score.set(k, (score.get(k) ?? 0) + n);
-  answers.forEach((a, i) => {
-    add(a, 1);
-    add(questions[i]?.options.find((o) => o.archetype === a)?.also, 0.5);
-  });
-  const count = (k: ArchetypeKey) => score.get(k) ?? 0;
-  const [first, second] = [...archetypeOrder].sort((a, b) => count(b) - count(a));
-  return [first, second];
+export const promptFor = (text: string) => {
+  const t = text.trim().replace(/[.\s]+$/, "");
+  return /\byour$/i.test(t) ? `${t}…` : `${t}. You…`;
+};
+
+export const toQuestion = (q: ApiQuestion): Question => ({
+  id: q._id,
+  text: q.questionText,
+  prompt: promptFor(q.questionText),
+  options: q.options.map((o) => ({ label: o.text })),
+});
+
+/** One answer as POST /api/quiz/calculate-result and the saved submission expect it. */
+export type QuizAnswer = { question_id: string; question: string; answer: string };
+
+/** What the quiz keeps from POST /api/quiz/calculate-result (see src/lib/api.ts). */
+export type QuizResult = {
+  pair: Blend;
+  /** The combination description written for this blend's clusters. */
+  description?: string;
+  /** The PDF report for this blend, emailed on submit. */
+  pdfUrl?: string;
+  /** `archedata` as the API returned it; saved with the submission as `result`, as the archetype app did. */
+  archetypes: unknown[];
+};
+
+/** "the indomitable spirit" (the database title) → "indomitable-spirit". */
+export function archetypeKeyFromTitle(title: string): ArchetypeKey | null {
+  const key = title.trim().toLowerCase().replace(/^the\s+/, "").replace(/\s+/g, "-") as ArchetypeKey;
+  return archetypeOrder.includes(key) ? key : null;
 }
 
 // ---- Shareable result pages: /result/<primary>-and-<secondary>, or /result/<archetype> for a single character ----

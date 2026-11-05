@@ -1,16 +1,16 @@
 // Run with `npm run check` (Node 23.6+ strips the TS types). Covers the code that reads visitor-controlled input
-// (the URL and saved browser data) and the scoring.
+// (the URL and saved browser data) and the mapping of API data onto the UI. Scoring itself is the server's (src/server).
 import assert from "node:assert/strict";
-import { topTwo, allPairs, allResults, pairSlug, parsePairSlug } from "../src/lib/quiz.ts";
+import { allPairs, allResults, archetypeKeyFromTitle, pairSlug, parsePairSlug, promptFor } from "../src/lib/quiz.ts";
 import { parseProgress, redirectFor, screenFromParams } from "../src/lib/progress.ts";
 import { PANEL, pairLayout, reach, visualReach } from "../src/lib/stickers.ts";
 
-// Scoring: most picks win, ties follow archetypeOrder.
-assert.deepEqual(topTwo(["artist", "artist", "ruler"]), ["artist", "ruler"]);
-assert.deepEqual(topTwo(["ruler", "explorer"]), ["explorer", "ruler"]);
-// A pick's secondary archetype (half a point) fills the second slot: "Write your own brief" → maverick + visionary.
-assert.deepEqual(topTwo(["maverick"]), ["maverick", "visionary"]);
-assert.deepEqual(topTwo([undefined]), ["explorer", "strategist"]);
+// Database titles → archetype keys; prompts get the archetype app's "You…" ending.
+assert.equal(archetypeKeyFromTitle("the indomitable spirit"), "indomitable-spirit");
+assert.equal(archetypeKeyFromTitle(" The Sage "), "sage");
+assert.equal(archetypeKeyFromTitle("the wizard"), null);
+assert.equal(promptFor("Your team is facing a major setback"), "Your team is facing a major setback. You…");
+assert.equal(promptFor("At the end of a project, the highlight of the journey was your"), "At the end of a project, the highlight of the journey was your…");
 
 // Result URLs: every pair round-trips, junk is rejected.
 assert.equal(allPairs.length, 90);
@@ -22,21 +22,34 @@ for (const result of allResults) assert.deepEqual(parsePairSlug(pairSlug(result)
 assert.deepEqual(parsePairSlug("sage"), ["sage"]);
 
 // Saved progress: good data round-trips, anything tampered or broken is rejected.
-const good = { answers: ["sage"], name: "A", email: "a@b.co" };
-assert.deepEqual(parseProgress(JSON.stringify(good))?.answers, ["sage"]);
+const result = { pair: ["sage", "ruler"], description: "d", pdfUrl: "https://x/p.pdf", archetypes: [] };
+const good = { answers: ["Plan next steps"], name: "A", email: "a@b.co", result: null };
+assert.deepEqual(parseProgress(JSON.stringify(good))?.answers, ["Plan next steps"]);
 assert.deepEqual(parseProgress(JSON.stringify({ ...good, answers: [null] }))?.answers, [undefined]);
-for (const bad of [null, "{not json", JSON.stringify({ ...good, answers: ["wizard"] }), JSON.stringify({ ...good, answers: ["sage", "ruler"] }), JSON.stringify({ ...good, name: 5 })]) {
+assert.deepEqual(parseProgress(JSON.stringify({ ...good, result }))?.result, result);
+for (const bad of [
+  null,
+  "{not json",
+  JSON.stringify({ ...good, answers: [5] }),
+  JSON.stringify({ ...good, answers: Array(101).fill("a") }),
+  JSON.stringify({ ...good, name: 5 }),
+  JSON.stringify({ ...good, result: { ...result, pair: ["sage", "wizard"] } }),
+  JSON.stringify({ ...good, result: { ...result, pdfUrl: 5 } }),
+]) {
   assert.equal(parseProgress(bad), null, String(bad));
 }
 
-// URL → screen, and where direct visits are sent: no skipping ahead, results need every answer.
+// URL → screen, and where direct visits are sent: no skipping ahead, results need every answer and a scored result.
 const sp = (s) => new URLSearchParams(s);
-assert.deepEqual(screenFromParams(sp("q=1")), { step: "quiz", q: 1 });
-assert.deepEqual(screenFromParams(sp("q=2")), { step: "intro" });
-assert.deepEqual(screenFromParams(sp("step=hacked")), { step: "intro" });
-assert.equal(redirectFor({ step: "quiz", q: 1 }, []), null);
-assert.deepEqual(redirectFor({ step: "done" }, []), { step: "quiz", q: 1 });
-assert.equal(redirectFor({ step: "done" }, ["sage"]), null);
+assert.deepEqual(screenFromParams(sp("q=11"), 11), { step: "quiz", q: 11 });
+assert.deepEqual(screenFromParams(sp("q=12"), 11), { step: "intro" });
+assert.deepEqual(screenFromParams(sp("step=hacked"), 11), { step: "intro" });
+assert.equal(redirectFor({ step: "quiz", q: 1 }, [], 2, false), null);
+assert.deepEqual(redirectFor({ step: "quiz", q: 2 }, [], 2, false), { step: "quiz", q: 1 });
+assert.deepEqual(redirectFor({ step: "done" }, ["a"], 2, false), { step: "quiz", q: 2 });
+assert.deepEqual(redirectFor({ step: "report" }, ["a", "b"], 2, false), { step: "processing" });
+assert.equal(redirectFor({ step: "processing" }, ["a", "b"], 2, false), null);
+assert.equal(redirectFor({ step: "done" }, ["a", "b"], 2, true), null);
 
 // Result panel, every pair on both layouts: full-size icon; figures the same height (full height except the tightest
 // phone pairs); equal edge gaps; icon centred with edge = average of the icon gaps, or moved with all four gaps equal;

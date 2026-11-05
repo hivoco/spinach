@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, Download, Mail, Share2, User } from "lucide-react";
+import { ArrowRight, Check, Download, LoaderCircle, Mail, Share2, User } from "lucide-react";
+import { asset } from "@/lib/assets";
 import { BackButton, Button, Field, Logo, MobileBar, TopBar } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 
@@ -9,17 +10,22 @@ type Props = {
   title: string;
   /** The shareable result page, e.g. /result/explorer-and-strategist. */
   resultHref: string;
+  /** The PDF report for this result, when the library has one. */
+  pdfUrl?: string;
   name: string;
   email: string;
   onName: (v: string) => void;
   onEmail: (v: string) => void;
-  onSubmit: () => void;
+  /** Saves the submission (which emails the report); rejects when that fails. */
+  onSubmit: () => Promise<void>;
   onBack: () => void;
   onClose: () => void;
 };
 
-export function Report({ title, resultHref, name, email, onName, onEmail, onSubmit, onBack, onClose }: Props) {
+export function Report({ title, resultHref, pdfUrl, name, email, onName, onEmail, onSubmit, onBack, onClose }: Props) {
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const form = useRef<HTMLFormElement>(null);
   // Errors only show after the first submit attempt, then update as the person types.
   const errors = {
@@ -36,7 +42,7 @@ export function Report({ title, resultHref, name, email, onName, onEmail, onSubm
         <Reveal direction="left" className="relative mx-auto grid size-[190px] place-items-center lg:hidden">
           <div aria-hidden className="absolute inset-[-9.47%_-14.74%_-20%_-14.74%]">
             {/* eslint-disable-next-line @next/next/no-img-element -- decorative Figma export */}
-            <img alt="" src="/images/ui/report/orb-mobile.webp" className="block size-full" />
+            <img alt="" src={asset("/images/ui/report/orb-mobile.webp")} className="block size-full" />
           </div>
           <span aria-hidden className="absolute size-[143.7px] rounded-full border-[1.5px] border-teal/22" />
           <span className="relative grid size-[92.5px] place-items-center rounded-full bg-teal/40 text-white">
@@ -67,7 +73,16 @@ export function Report({ title, resultHref, name, email, onName, onEmail, onSubm
             onSubmit={(e) => {
               e.preventDefault();
               setSubmitted(true);
-              if (!errors.name && !errors.email) return onSubmit();
+              if (sending) return;
+              if (!errors.name && !errors.email) {
+                setSending(true);
+                setSendFailed(false);
+                // On success the screen changes; on failure stay here so the person can try again.
+                return void onSubmit().catch(() => {
+                  setSending(false);
+                  setSendFailed(true);
+                });
+              }
               form.current?.querySelector<HTMLInputElement>(errors.name ? "input[name=name]" : "input[name=email]")?.focus();
             }}
             className="mt-6 flex flex-col gap-3 text-left lg:mt-9 lg:gap-[18px]"
@@ -93,24 +108,36 @@ export function Report({ title, resultHref, name, email, onName, onEmail, onSubm
               error={submitted ? errors.email : undefined}
             />
             {/* Desktop frame shows it faded until both fields are valid; it stays clickable so a click still reveals the errors. */}
-            <Button type="submit" className={`mt-2 w-full lg:mt-4 lg:h-[72px] lg:gap-1.5 ${errors.name || errors.email ? "lg:opacity-50" : ""}`}>
-              <span className="lg:hidden">Send Report</span>
-              <span className="hidden lg:inline">Get Your Report</span>
-              <ArrowRight className="size-5 lg:size-[22px]" />
+            <Button type="submit" aria-disabled={sending} className={`mt-2 w-full lg:mt-4 lg:h-[72px] lg:gap-1.5 ${errors.name || errors.email || sending ? "lg:opacity-50" : ""}`}>
+              {sending ? (
+                <>
+                  Sending…
+                  <LoaderCircle className="size-5 animate-spin motion-reduce:animate-none lg:size-[22px]" />
+                </>
+              ) : (
+                <>
+                  <span className="lg:hidden">Send Report</span>
+                  <span className="hidden lg:inline">Get Your Report</span>
+                  <ArrowRight className="size-5 lg:size-[22px]" />
+                </>
+              )}
             </Button>
+            <p aria-live="polite" className="px-6 text-center text-sm text-clay lg:text-left">
+              {sendFailed ? "We couldn’t send your report. Check your connection and try again." : ""}
+            </p>
           </form>
 
-          <ReportActions title={title} resultHref={resultHref} className="mt-[76px] hidden gap-[22px] px-[14px] lg:flex" />
+          <ReportActions title={title} resultHref={resultHref} pdfUrl={pdfUrl} className="mt-[76px] hidden gap-[22px] px-[14px] lg:flex" />
         </Reveal>
       </section>
 
-      <ReportActions title={title} resultHref={resultHref} className="absolute inset-x-6 bottom-9 flex gap-4 lg:hidden" />
+      <ReportActions title={title} resultHref={resultHref} pdfUrl={pdfUrl} className="absolute inset-x-6 bottom-9 flex gap-4 lg:hidden" />
     </>
   );
 }
 
-/** Download (print) and Share buttons for the result; also used on the thank-you screen. */
-export function ReportActions({ title, resultHref, className }: { title: string; resultHref: string; className: string }) {
+/** Download and Share buttons for the result; also used on the thank-you screen. */
+export function ReportActions({ title, resultHref, pdfUrl, className }: { title: string; resultHref: string; pdfUrl?: string; className: string }) {
   const [shareStatus, setShareStatus] = useState<"" | "copied" | "failed">("");
   useEffect(() => {
     if (!shareStatus) return;
@@ -134,8 +161,9 @@ export function ReportActions({ title, resultHref, className }: { title: string;
       <p aria-live="polite" className="sr-only">
         {shareStatus === "copied" ? "Link copied to the clipboard." : shareStatus === "failed" ? "Couldn’t copy the link. Copy it from the address bar instead." : ""}
       </p>
-      {/* shortcut: prints the page (where "Save as PDF" downloads it) until a real PDF report exists. */}
-      <Button compact onClick={() => window.print()} className="flex-1 lg:w-[260px] lg:flex-none">
+      {/* The report lives on S3, which allows no cross-origin fetch, so it opens in a new tab (the browser's viewer can save it).
+          No PDF for this result in the library: fall back to printing the page (where "Save as PDF" downloads it). */}
+      <Button compact onClick={() => (pdfUrl ? window.open(pdfUrl, "_blank", "noopener") : window.print())} className="flex-1 lg:w-[260px] lg:flex-none">
         <Download className="size-[22px]" />
         Download Report
       </Button>

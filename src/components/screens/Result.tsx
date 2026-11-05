@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { archetypes, blendDescription, blendTagline, blendTitle, type Blend } from "@/lib/quiz";
 import { resultPanel, resultPanelMobile } from "@/lib/shapes";
 import { PANEL, STICKERS, pairLayout } from "@/lib/stickers";
+import { asset } from "@/lib/assets";
 import { Asset, BackButton, Button, GlassShape, MobileBar, Tag, TopBar } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 
@@ -14,6 +15,8 @@ type Props = {
   pair: Blend;
   /** Opened from someone else's shared link: talk about "a" blend, and offer the quiz instead of the report. */
   shared?: boolean;
+  /** The description the database holds for this blend; the built-in copy is used when absent. */
+  description?: string;
   onNext: () => void;
   onBack: () => void;
   onClose: () => void;
@@ -21,8 +24,7 @@ type Props = {
 
 const vars = (v: Record<string, string>) => v as CSSProperties;
 
-export function Result({ pair, shared = false, onNext, onBack, onClose }: Props) {
-  const description = blendDescription(pair);
+export function Result({ pair, shared = false, description = blendDescription(pair), onNext, onBack, onClose }: Props) {
   const tagline = blendTagline(pair);
   const title = blendTitle(pair);
   const single = pair.length === 1;
@@ -71,7 +73,7 @@ export function Result({ pair, shared = false, onNext, onBack, onClose }: Props)
                     width × centre puts the drawing's visual centre on --x, whatever the image width. */}
                 <div style={{ translate: `${-STICKERS[key].centre * 100}% 0` }} className="absolute bottom-0 left-(--x) h-(--h) lg:left-(--X) lg:h-(--H)">
                   <Asset
-                    src={`/images/archetypes/stickers/${key}.webp`}
+                    src={asset(`/images/archetypes/stickers/${key}.webp`)}
                     alt={archetypes[key].name}
                     // Sized by height, not fitted to the slot width, so every sticker stands as tall as the others; wide ones spill past the slot sides.
                     className="block h-full w-auto max-w-none"
@@ -99,11 +101,16 @@ export function Result({ pair, shared = false, onNext, onBack, onClose }: Props)
               </motion.span>
             ))}
             {/* Blend icon, always full size: dead centre, or moved sideways (--ix) in a tight pair; height from pairLayout (--iy). */}
-            {!single && <span
-              aria-hidden
-              style={vars({ "--ix": pct(phone.icon), "--IX": pct(desk.icon), "--iy": pct(phone.iconY), "--IY": pct(desk.iconY) })}
-              className="absolute top-(--iy) left-(--ix) aspect-square w-[21.6%] -translate-1/2 bg-teal [mask:url('/images/ui/result/blend-icon-mask.webp')_center/contain_no-repeat] lg:top-(--IY) lg:left-(--IX) lg:w-[20.3%]"
-            />}
+            {!single && (
+              // eslint-disable-next-line @next/next/no-img-element -- decorative Figma export
+              <img
+                aria-hidden
+                alt=""
+                src={asset("/images/ui/result/blend-icon.webp")}
+                style={vars({ "--ix": pct(phone.icon), "--IX": pct(desk.icon), "--iy": pct(phone.iconY), "--IY": pct(desk.iconY) })}
+                className="absolute top-(--iy) left-(--ix) aspect-square w-[21.6%] -translate-1/2 lg:top-(--IY) lg:left-(--IX) lg:w-[20.3%]"
+              />
+            )}
             <p className="absolute top-[67.8%] left-1/2 line-clamp-5 w-[85.6%] -translate-x-1/2 text-center text-[14px] leading-[20px] text-ink lg:hidden">{description}</p>
           </GlassShape>
           <p className="mt-5 font-display text-xl leading-7 font-bold text-ink lg:hidden">{tagline}</p>

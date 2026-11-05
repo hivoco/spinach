@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { ChevronsRight, Sparkles } from "lucide-react";
-import { archetypeOrder, questions } from "@/lib/quiz";
+import { QUIZ_LENGTH, archetypeOrder } from "@/lib/quiz";
 import { Logo } from "@/components/ui";
 import { CardArc } from "@/components/CardArc";
 import { Reveal } from "@/components/Reveal";
@@ -36,7 +36,7 @@ export function Welcome({ onStart }: { onStart: () => void }) {
           <span className="block text-teal">Career Archetype</span>
         </h1>
         <p className="mt-3.5 max-w-80 text-base leading-[1.4] text-ink-2 lg:mt-6 lg:max-w-[500px] lg:text-[21px] lg:leading-[27px]">
-          Answer {questions.length} short scenarios and discover the blend of archetypes that shapes how you work.
+          Answer {QUIZ_LENGTH} short scenarios and discover the blend of archetypes that shapes how you work.
         </p>
         <SwipeToStart onStart={onStart} />
         <button

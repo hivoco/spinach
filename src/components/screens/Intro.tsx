@@ -1,15 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pause, Play, SkipForward } from "lucide-react";
 import { asset } from "@/lib/assets";
 import { TopBar } from "@/components/ui";
+
+const ICON_HIDE_MS = 2500;
 
 export function Intro({ onDone }: { onDone: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [missing, setMissing] = useState(false);
+  const [showIcon, setShowIcon] = useState(false);
+
+  // An icon brought back by a tap fades away again if it isn't used.
+  useEffect(() => {
+    if (!showIcon) return;
+    const t = setTimeout(() => setShowIcon(false), ICON_HIDE_MS);
+    return () => clearTimeout(t);
+  }, [showIcon]);
 
   const toggle = () => {
     const v = ref.current;
@@ -39,14 +49,17 @@ export function Intro({ onDone }: { onDone: () => void }) {
           </button>
         </div>
 
-        <div className="group relative mt-[23px] h-[670px] w-full overflow-hidden rounded-[28px] bg-ink-2 lg:mt-0 lg:aspect-video lg:h-auto lg:rounded-[36px] lg:shadow-[0_20px_50px_rgb(46_112_107/0.25)]">
+        <div className="relative mt-[23px] h-[670px] w-full overflow-hidden rounded-[28px] bg-ink-2 lg:mt-0 lg:aspect-video lg:h-auto lg:rounded-[36px] lg:shadow-[0_20px_50px_rgb(46_112_107/0.25)]">
           <video
             ref={ref}
             src={asset("/videos/intro.mp4")}
             playsInline
             // Desktop keeps the wide frame but shows the whole portrait video, with dark bars at the sides.
             className="size-full object-cover lg:object-contain"
-            onPlay={() => setPlaying(true)}
+            onPlay={() => {
+              setPlaying(true);
+              setShowIcon(false);
+            }}
             onPause={() => setPlaying(false)}
             onEnded={onDone}
             onError={() => setMissing(true)}
@@ -56,14 +69,19 @@ export function Intro({ onDone }: { onDone: () => void }) {
           {missing ? (
             <p className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-white/60">Video unavailable</p>
           ) : (
-            <button
-              type="button"
-              onClick={toggle}
-              aria-label={playing ? "Pause intro video" : "Play intro video"}
-              // While playing the overlay is invisible (tap anywhere still pauses); on desktop the pause button shows on hover.
-              className={`absolute inset-0 grid place-items-center transition-opacity ${playing ? "opacity-0 pointer-fine:group-hover:opacity-100 focus-visible:opacity-100" : ""}`}
-            >
-              <span className="relative grid size-[88px] place-items-center rounded-full bg-teal text-white lg:size-[104px]">
+            <>
+              {/* Paused: a tap anywhere plays. Playing: a tap only shows or hides the icon, so it can't pause by accident. */}
+              <button type="button" aria-hidden tabIndex={-1} onClick={() => (playing ? setShowIcon((show) => !show) : toggle())} className="absolute inset-0" />
+              <button
+                type="button"
+                onClick={toggle}
+                aria-label={playing ? "Pause intro video" : "Play intro video"}
+                // Below the centre, clear of the progress bar: the desktop player is shorter, so it can't move as far.
+                // While playing it's hidden and can't be pressed until a tap shows it.
+                className={`absolute top-[calc(50%+200px)] left-1/2 grid size-[88px] -translate-1/2 place-items-center rounded-full bg-teal text-white transition-opacity lg:top-[calc(50%+150px)] lg:size-[104px] ${
+                  playing && !showIcon ? "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100" : ""
+                }`}
+              >
                 {playing ? (
                   <Pause className="size-7 lg:size-9" strokeWidth={1.5} />
                 ) : (
@@ -72,8 +90,8 @@ export function Intro({ onDone }: { onDone: () => void }) {
                     <Play className="ml-1 hidden size-9 lg:block" strokeWidth={1.5} />
                   </>
                 )}
-              </span>
-            </button>
+              </button>
+            </>
           )}
 
           <div className="absolute inset-x-6 bottom-10 flex h-4 items-center rounded-full outline-offset-4 has-focus-visible:outline-2 has-focus-visible:outline-white lg:inset-x-9 lg:bottom-8">

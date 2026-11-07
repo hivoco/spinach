@@ -50,5 +50,5 @@ Each screen is laid out on the Figma frames (390×844 phone, 1440×900 desktop) 
 ## Notes
 
 - Submitting the report form saves the submission and emails the PDF report (plus an admin notification), as the archetype app does.
-- "Download Report" opens the PDF in a new tab (the S3 bucket allows no cross-origin download); results without a PDF fall back to printing the page.
+- "Download Report" saves the PDF through `/api/report/download`, because browsers won't force a download of another site's file; results without a PDF fall back to printing the page.
 - Captions for the intro video: add `public/videos/intro.vtt` and a `<track>` for it in `Intro.tsx`.

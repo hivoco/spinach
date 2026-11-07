@@ -36,7 +36,9 @@ export function Intro({ onDone }: { onDone: () => void }) {
   return (
     <>
       <TopBar lowLogo />
-      <section className="mx-auto flex w-full max-w-[960px] flex-1 flex-col px-6 pt-10 lg:justify-center lg:px-0 lg:pt-0 lg:pb-[38px]">
+      {/* Phone layout: 425px is the 670px-tall player at the video's 9:16 (377px) plus its gutters. Any wider, on tablets and short
+          phones, and object-cover would zoom in and cut off the top and bottom of the video. */}
+      <section className="mx-auto flex w-full max-w-[425px] flex-1 flex-col px-6 pt-10 lg:max-w-[960px] lg:justify-center lg:px-0 lg:pt-0 lg:pb-[38px]">
         <div className="flex h-[35px] items-center justify-between lg:mb-3.5 lg:h-auto">
           <h1 className="font-display text-[11px] font-bold tracking-[2.5px] text-teal uppercase lg:text-xs lg:tracking-[1.6px]">Introductory video</h1>
           <button

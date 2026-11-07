@@ -136,6 +136,16 @@ export function Report({ title, resultHref, pdfUrl, name, email, onName, onEmail
   );
 }
 
+/** Saves the PDF to the device. The route serves it as an attachment, so the page stays where it is. */
+function downloadReport(pdfUrl: string) {
+  const link = document.createElement("a");
+  link.href = `/api/report/download?url=${encodeURIComponent(pdfUrl)}`;
+  link.download = "Career-Archetype-Report.pdf";
+  document.body.append(link); // Firefox only follows links that are in the document
+  link.click();
+  link.remove();
+}
+
 /** Download and Share buttons for the result; also used on the thank-you screen. */
 export function ReportActions({ title, resultHref, pdfUrl, className }: { title: string; resultHref: string; pdfUrl?: string; className: string }) {
   const [shareStatus, setShareStatus] = useState<"" | "copied" | "failed">("");
@@ -161,9 +171,8 @@ export function ReportActions({ title, resultHref, pdfUrl, className }: { title:
       <p aria-live="polite" className="sr-only">
         {shareStatus === "copied" ? "Link copied to the clipboard." : shareStatus === "failed" ? "Couldn’t copy the link. Copy it from the address bar instead." : ""}
       </p>
-      {/* The report lives on S3, which allows no cross-origin fetch, so it opens in a new tab (the browser's viewer can save it).
-          No PDF for this result in the library: fall back to printing the page (where "Save as PDF" downloads it). */}
-      <Button compact onClick={() => (pdfUrl ? window.open(pdfUrl, "_blank", "noopener") : window.print())} className="flex-1 lg:w-[260px] lg:flex-none">
+      {/* No PDF for this result in the library: fall back to printing the page (where "Save as PDF" downloads it). */}
+      <Button compact onClick={() => (pdfUrl ? downloadReport(pdfUrl) : window.print())} className="flex-1 lg:w-[260px] lg:flex-none">
         <Download className="size-[22px]" />
         Download Report
       </Button>

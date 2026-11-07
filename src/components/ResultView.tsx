@@ -22,7 +22,7 @@ export function ResultView({ pair }: { pair: Blend }) {
     const saved = loadProgress(); // none or storage blocked: treat as a visitor
     // Reading browser storage has to wait until after hydration, or server and client HTML would differ.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved?.result && pairSlug(saved.result.pair) === pairSlug(pair)) setOwner({ description: saved.result.description, questionCount: saved.answers.length });
+    setOwner(saved?.result && pairSlug(saved.result.pair) === pairSlug(pair) ? { description: saved.result.description, questionCount: saved.answers.length } : null);
   }, [pair]);
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { animate, motion, useMotionValue, useTransform } from "motion/react";
 import { ChevronsRight, Sparkles } from "lucide-react";
 import { QUIZ_LENGTH, archetypeOrder } from "@/lib/quiz";
@@ -75,6 +75,13 @@ function SwipeToStart({ onStart }: { onStart: () => void }) {
     started.current = true;
     onStart();
   };
+  // Next keeps a page alive (hidden) when you leave it and restores it on Back, and effects re-run when it comes back.
+  // Reset then, or the slider would return at the end of the track and ignore the next slide.
+  useEffect(() => {
+    started.current = false;
+    drag.current = null;
+    progress.jump(0);
+  }, [progress]);
   const release = (reachedEnd: boolean) => {
     drag.current = null;
     if (reachedEnd) animate(progress, 1, { duration: 0.15 }).then(start);

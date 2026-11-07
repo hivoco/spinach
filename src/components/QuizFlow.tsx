@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { RotateCcw } from "lucide-react";
@@ -33,22 +33,29 @@ export function QuizFlow() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [scoreFailed, setScoreFailed] = useState(false);
   const { requestClose, dialog } = useLeaveQuiz(answers.some(Boolean));
+  const justRestored = useRef(false);
 
   // Keep answers across a refresh (this tab only).
   useEffect(() => {
     const saved = loadProgress();
-    if (saved) {
-      // Restoring from browser storage must wait until after hydration, or server and client HTML would differ.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setAnswers(saved.answers);
-      setName(saved.name);
-      setEmail(saved.email);
-      setResult(saved.result);
-    }
+    // Restoring from browser storage must wait until after hydration, or server and client HTML would differ.
+    // Next keeps this page alive (hidden) after you leave and this re-runs on return, so no saved progress
+    // (the quiz was left or restarted) has to clear the answers still held in memory.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAnswers(saved?.answers ?? []);
+    setName(saved?.name ?? "");
+    setEmail(saved?.email ?? "");
+    setResult(saved?.result ?? null);
     setRestored(true);
+    justRestored.current = true;
   }, []);
   useEffect(() => {
     if (!restored) return;
+    // This run still holds the state from before the restore above; saving it would bring back what was just cleared.
+    if (justRestored.current) {
+      justRestored.current = false;
+      return;
+    }
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, name, email, result }));
     } catch {} // storage blocked or full: progress just won't survive a refresh

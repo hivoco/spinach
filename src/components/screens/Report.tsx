@@ -62,7 +62,7 @@ export function Report({ title, resultHref, pdfUrl, name, email, onName, onEmail
         </Reveal>
 
         <Reveal direction="right" delay={0.15} className="mt-[26px] text-center lg:mt-0 lg:pt-[37px] lg:text-left">
-          <h1 className="font-display text-[32px] font-bold text-balance whitespace-nowrap text-ink lg:text-[60px] lg:leading-[70px]">To get your report</h1>
+          <h1 className="font-display text-[32px] font-bold text-balance text-ink lg:text-[60px] lg:leading-[70px]">To get your report</h1>
           <p className="mx-auto mt-[22px] max-w-[290px] text-base leading-[22px] text-ink/65 lg:mx-0 lg:mt-5 lg:max-w-none lg:text-xl lg:leading-[30px]">
             Tell us where to send your Career Archetype report.
           </p>

@@ -51,7 +51,7 @@ export const viewport: Viewport = { themeColor: "#edf0ed", viewportFit: "cover" 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${montserrat.variable} ${ptSans.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">
+      <body className="h-full font-sans">
         <Frame>{children}</Frame>
       </body>
     </html>

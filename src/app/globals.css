@@ -41,10 +41,12 @@ body {
   html {
     -webkit-tap-highlight-color: transparent;
   }
-  @media (pointer: fine) {
-    html {
-      overscroll-behavior: none;
-    }
+  /* Every screen fits the window (see Frame), so the page itself never scrolls or rubber-bands. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   :focus-visible {

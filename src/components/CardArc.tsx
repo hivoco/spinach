@@ -18,6 +18,8 @@ const DESKTOP = {
 const R = [20, 15, 10, 5, 0, -5, -10, -15, -20];
 const S = [0.862, 0.862, 0.862, 0.862, 1, 0.862, 0.862, 0.862, 0.862];
 const STAGE = 390;
+// Phone hero height the slot table is drawn for; a shorter hero shrinks the whole arc to fit.
+const PHONE_HERO_HEIGHT = 500;
 // On phones the cards stop growing past a large phone's width and stay centred in any extra space.
 const PHONE_ART_WIDTH = 430;
 const SPEED = 1.2; // slots per second
@@ -46,10 +48,12 @@ export function CardArc() {
     let drag: { x: number; t: number } | null = null;
     // Sizes only change on resize, so measure then rather than every frame (avoids layout reads between style writes).
     let width = 0;
+    let height = 0;
     let cardW = 0;
     let cardH = 0;
     const measure = () => {
       width = el.clientWidth;
+      height = el.clientHeight;
       const first = cards.current[0];
       cardW = first?.offsetWidth ?? 0;
       cardH = first?.offsetHeight ?? 0;
@@ -63,6 +67,7 @@ export function CardArc() {
       const k = art / STAGE;
       const offsetX = (width - art) / 2;
       const { X, Y } = desktop.matches ? DESKTOP : PHONE;
+      const fit = desktop.matches ? 1 : Math.min(1, height / PHONE_HERO_HEIGHT);
       cards.current.forEach((card, j) => {
         if (!card) return;
         const p = ((((j - t) % N) + N) % N) - 4;
@@ -74,11 +79,11 @@ export function CardArc() {
         card.style.visibility = op <= 0.001 ? "hidden" : "visible";
         if (op <= 0.001) return;
         const s = cr(S, i, u);
-        const x = cr(X, i, u) * k + offsetX - cardW / 2;
-        const y = cr(Y, i, u) * k - cardH / 2;
+        const x = (cr(X, i, u) * k + offsetX - width / 2) * fit + width / 2 - cardW / 2;
+        const y = cr(Y, i, u) * k * fit - cardH / 2;
         card.style.opacity = String(op);
         card.style.zIndex = String(Math.round(100 - a * 10));
-        card.style.transform = `translate(${x}px, ${y}px) rotate(${-cr(R, i, u)}deg) scale(${s})`;
+        card.style.transform = `translate(${x}px, ${y}px) rotate(${-cr(R, i, u)}deg) scale(${s * fit})`;
       });
     };
 

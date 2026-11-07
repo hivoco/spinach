@@ -15,10 +15,10 @@ const optionalString = (v: unknown) => v === undefined || typeof v === "string";
 function parseResult(r: unknown): QuizResult | null | undefined {
   if (r === null || r === undefined) return null;
   if (typeof r !== "object") return undefined;
-  const { pair, description, pdfUrl, archetypes } = r as Record<string, unknown>;
+  const { pair, description, pdfUrl, archetypes, shared } = r as Record<string, unknown>;
   const blend = Array.isArray(pair) ? parsePairSlug(pairSlug(pair as QuizResult["pair"])) : null;
-  if (!blend || !optionalString(description) || !optionalString(pdfUrl) || !Array.isArray(archetypes)) return undefined;
-  return { pair: blend, description: description as string | undefined, pdfUrl: pdfUrl as string | undefined, archetypes };
+  if (!blend || !optionalString(description) || !optionalString(pdfUrl) || !Array.isArray(archetypes) || (shared !== undefined && typeof shared !== "boolean")) return undefined;
+  return { pair: blend, description: description as string | undefined, pdfUrl: pdfUrl as string | undefined, archetypes, ...(shared ? { shared: true } : {}) };
 }
 
 /** Validates progress read back from sessionStorage; anything malformed is treated as no saved progress. */
@@ -46,6 +46,13 @@ export function loadProgress(): Progress | null {
   }
 }
 
+/** Starts the report form for a result opened from a shared link: there are no answers, only the result. */
+export function saveSharedResult(result: QuizResult) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers: [], name: "", email: "", result }));
+  } catch {} // storage blocked: the quiz then starts from the first question
+}
+
 export function clearProgress() {
   try {
     sessionStorage.removeItem(STORAGE_KEY);
@@ -70,9 +77,11 @@ export const screenHref = (s: Screen) => (s.step === "quiz" ? `/quiz?q=${s.q}` :
 
 /**
  * Where a direct visit or refresh should actually land: a question can't be skipped ahead to, results need every
- * answer, and the report needs the scored result (processing fetches it). Returns null when the screen is allowed.
+ * answer, and the report needs the scored result (processing fetches it). A result from a shared link has no answers,
+ * but can open the report and thank-you screens. Returns null when the screen is allowed.
  */
-export function redirectFor(screen: Screen, answers: string[], total: number, hasResult: boolean): Screen | null {
+export function redirectFor(screen: Screen, answers: string[], total: number, hasResult: boolean, sharedResult = false): Screen | null {
+  if (sharedResult && (screen.step === "result" || screen.step === "report" || screen.step === "done")) return null;
   const firstMissing = Array.from({ length: total }, (_, i) => answers[i]).findIndex((a) => !a);
   if (firstMissing === -1) return !hasResult && (screen.step === "result" || screen.step === "report" || screen.step === "done") ? { step: "processing" } : null;
   if (screen.step === "quiz" && screen.q - 1 <= firstMissing) return null;

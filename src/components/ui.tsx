@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ComponentProps, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Home, X } from "lucide-react";
 import { asset } from "@/lib/assets";
 
 /** <img> that keeps its space (as an empty, labelled box, or `fallback`) when the file fails to load. */
@@ -68,8 +68,8 @@ function IconButton({ label, className = "", children, ...props }: ComponentProp
   );
 }
 
-/** Desktop header from the D-frames: logo with close on the right, optional back button below. lowLogo: D2 and D3 put the logo at y54. */
-export function TopBar({ onBack, onClose, lowLogo = false }: { onBack?: () => void; onClose?: () => void; lowLogo?: boolean }) {
+/** Desktop header from the D-frames: logo with close on the right, optional back or home button below. lowLogo: D2 and D3 put the logo at y54. */
+export function TopBar({ onBack, onHome, onClose, lowLogo = false }: { onBack?: () => void; onHome?: () => void; onClose?: () => void; lowLogo?: boolean }) {
   return (
     // Figma D-frames: close at y40, logo at y48, back at y105.
     <header className="relative z-10 hidden px-20 pt-10 lg:block">
@@ -86,6 +86,11 @@ export function TopBar({ onBack, onClose, lowLogo = false }: { onBack?: () => vo
       {onBack && (
         <IconButton label="Back" onClick={onBack} className="mt-[17px]">
           <ArrowLeft className="size-[22px]" />
+        </IconButton>
+      )}
+      {onHome && (
+        <IconButton label="Home" onClick={onHome} className="mt-[17px]">
+          <Home className="size-[22px]" />
         </IconButton>
       )}
     </header>
@@ -106,6 +111,12 @@ export function MobileBar({ left, center, right }: { left?: ReactNode; center?: 
 export const BackButton = ({ onClick }: { onClick: () => void }) => (
   <IconButton label="Back" onClick={onClick}>
     <ArrowLeft className="size-5" />
+  </IconButton>
+);
+
+export const HomeButton = ({ onClick }: { onClick: () => void }) => (
+  <IconButton label="Home" onClick={onClick}>
+    <Home className="size-5" />
   </IconButton>
 );
 

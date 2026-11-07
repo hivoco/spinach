@@ -50,6 +50,12 @@ assert.deepEqual(redirectFor({ step: "done" }, ["a"], 2, false), { step: "quiz",
 assert.deepEqual(redirectFor({ step: "report" }, ["a", "b"], 2, false), { step: "processing" });
 assert.equal(redirectFor({ step: "processing" }, ["a", "b"], 2, false), null);
 assert.equal(redirectFor({ step: "done" }, ["a", "b"], 2, true), null);
+// A result from a shared link opens the report without answers, but it doesn't unlock the questions.
+assert.equal(redirectFor({ step: "report" }, [], 2, true, true), null);
+assert.equal(redirectFor({ step: "done" }, [], 2, true, true), null);
+assert.deepEqual(redirectFor({ step: "quiz", q: 2 }, [], 2, true, true), { step: "quiz", q: 1 });
+assert.equal(parseProgress(JSON.stringify({ ...good, result: { ...result, shared: true } }))?.result?.shared, true);
+assert.equal(parseProgress(JSON.stringify({ ...good, result: { ...result, shared: "yes" } })), null);
 
 // Result panel, every pair on both layouts: full-size icon; figures the same height (full height except the tightest
 // phone pairs); equal edge gaps; icon centred with edge = average of the icon gaps, or moved with all four gaps equal;

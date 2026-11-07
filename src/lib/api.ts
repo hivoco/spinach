@@ -1,4 +1,4 @@
-import { archetypeKeyFromTitle, pairSlug, parsePairSlug, toQuestion, type ApiQuestion, type ArchetypeKey, type QuizAnswer, type QuizResult } from "@/lib/quiz";
+import { archetypeKeyFromTitle, pairSlug, parsePairSlug, toQuestion, type ApiQuestion, type ArchetypeKey, type Blend, type QuizAnswer, type QuizResult } from "@/lib/quiz";
 
 // Browser-side calls to the quiz API in src/app/api (the archetype app's backend, same database).
 
@@ -19,14 +19,22 @@ type ApiResult = {
   description: { description: string } | null;
 };
 
-/** Scores the answers on the server and maps the archetypes it picks onto a result page. */
-export async function calculateResult(answers: QuizAnswer[]): Promise<QuizResult> {
-  const r = await call<ApiResult>("/api/quiz/calculate-result", answers);
+/** Maps the archetypes the server picked onto a result page. */
+function toQuizResult(r: ApiResult): QuizResult {
   const keys = r.archedata.map((a) => archetypeKeyFromTitle(a.title));
   const pair = keys.every(Boolean) ? parsePairSlug(pairSlug(keys as [ArchetypeKey])) : null;
   if (!pair) throw new Error(`Unrecognised result: ${r.archedata.map((a) => a.title).join(", ")}`);
   return { pair, description: r.description?.description, pdfUrl: r.pdf?.pdfUrl, archetypes: r.archedata };
 }
+
+/** Scores the answers on the server. */
+export const calculateResult = async (answers: QuizAnswer[]) => toQuizResult(await call<ApiResult>("/api/quiz/calculate-result", answers));
+
+/** The report details for a result opened from a shared link, which has no answers to score. */
+export const fetchSharedResult = async (pair: Blend): Promise<QuizResult> => ({
+  ...toQuizResult(await call<ApiResult>(`/api/quiz/shared-result?pair=${encodeURIComponent(pairSlug(pair))}`)),
+  shared: true,
+});
 
 /** Saves the submission; the server then emails the PDF report to the person and notifies the admin. */
 export const saveSubmission = (data: { name: string; email: string; quiz: QuizAnswer[]; result: unknown[]; pdfUrl?: string }) =>

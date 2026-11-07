@@ -230,6 +230,11 @@ const calculateResult = async (data) => {
     finalArchetypes = [first.id, second.id];
   }
 
+  return describeArchetypes(finalArchetypes);
+};
+
+/** The result's details for these archetypes, in this order: their cards, the PDF report and the description. */
+const describeArchetypes = async (finalArchetypes) => {
   const archedata = finalArchetypes.length
     ? await query(
         `SELECT id AS _id, title, image, color, isLeft FROM archetypes WHERE id IN (?)`,
@@ -260,11 +265,25 @@ const calculateResult = async (data) => {
   return { archetypes: finalArchetypes, archedata, pdf, description };
 };
 
+/** The same details for a shared result link, which knows the archetypes' titles but has no answers to score. */
+const getResultForTitles = async (titles) => {
+  const rows = await query(`SELECT id, title FROM archetypes WHERE title IN (?)`, [titles]);
+  const idByTitle = new Map(rows.map((r) => [r.title.trim().toLowerCase(), r.id]));
+  const ids = titles.map((title) => idByTitle.get(title.toLowerCase()));
+
+  if (!ids.every(Boolean)) {
+    throw new Error(`Unknown archetype in: ${titles.join(", ")}`);
+  }
+
+  return describeArchetypes(ids);
+};
+
 const quizServices = {
   createQuestion,
   getQuestion,
   getQuizQuestion,
   getQuestionById,
   calculateResult,
+  getResultForTitles,
 };
 export default quizServices;

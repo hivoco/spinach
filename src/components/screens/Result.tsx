@@ -7,14 +7,18 @@ import { archetypes, blendDescription, blendTagline, blendTitle, type Blend } fr
 import { resultPanel, resultPanelMobile } from "@/lib/shapes";
 import { PANEL, STICKERS, pairLayout } from "@/lib/stickers";
 import { asset } from "@/lib/assets";
-import { Asset, BackButton, Button, GlassShape, MobileBar, Tag, TopBar } from "@/components/ui";
+import { Asset, BackButton, Button, GlassShape, HomeButton, MobileBar, Tag, TopBar } from "@/components/ui";
 import { Reveal } from "@/components/Reveal";
 
 type Props = {
   /** Two archetypes, or one for a single-character result. */
   pair: Blend;
-  /** Opened from someone else's shared link: talk about "a" blend, and offer the quiz instead of the report. */
+  /** Opened from a shared link: talk about "a" blend, and offer a Home button instead of Back and Close. */
   shared?: boolean;
+  /** The report details are loading after pressing the button. */
+  pending?: boolean;
+  /** The report details couldn't be loaded. */
+  failed?: boolean;
   /** The description the database holds for this blend; the built-in copy is used when absent. */
   description?: string;
   onNext: () => void;
@@ -24,7 +28,12 @@ type Props = {
 
 const vars = (v: Record<string, string>) => v as CSSProperties;
 
-export function Result({ pair, shared = false, description = blendDescription(pair), onNext, onBack, onClose }: Props) {
+export function Result({ pair, shared = false, pending = false, failed = false, description = blendDescription(pair), onNext, onBack, onClose }: Props) {
+  const failure = failed && (
+    <p role="alert" className="mb-2 text-center text-sm text-clay lg:mt-3 lg:mb-0 lg:text-left">
+      We couldn’t open your report. Check your connection and try again.
+    </p>
+  );
   const tagline = blendTagline(pair);
   const title = blendTitle(pair);
   const single = pair.length === 1;
@@ -39,8 +48,8 @@ export function Result({ pair, shared = false, description = blendDescription(pa
 
   return (
     <>
-      <TopBar onBack={onBack} onClose={onClose} />
-      <MobileBar left={<BackButton onClick={onBack} />} center={<p className="font-display text-[15px] font-semibold text-ink">{shared ? "Career Archetype" : "Your Career Archetype"}</p>} />
+      {shared ? <TopBar onHome={onBack} /> : <TopBar onBack={onBack} onClose={onClose} />}
+      <MobileBar left={shared ? <HomeButton onClick={onBack} /> : <BackButton onClick={onBack} />} center={<p className="font-display text-[15px] font-semibold text-ink">{shared ? "Career Archetype" : "Your Career Archetype"}</p>} />
       <section className="grid w-full flex-1 content-start px-7 pt-3.5 lg:grid-cols-[620px_minmax(0,560px)] lg:mx-auto lg:max-w-page lg:content-stretch lg:justify-center lg:gap-20 lg:pt-0 lg:pr-20 lg:pl-[120px]">
         <Reveal direction="right" delay={0.15} className="lg:order-2 lg:pt-[67px]">
           <Tag>{tag}</Tag>
@@ -51,10 +60,11 @@ export function Result({ pair, shared = false, description = blendDescription(pa
           <p className="hidden max-w-[500px] text-xl leading-[31px] text-ink/78 lg:mt-6 lg:block lg:min-h-[124px]">{description}</p>
           <p className="mt-[62px] hidden max-w-[520px] font-display text-[26px] leading-9 font-bold text-ink lg:block">{tagline}</p>
           <div className="mt-[38px] hidden lg:block">
-            <Button onClick={onNext} className="w-60">
-              {shared ? "Take the Quiz" : "Next"}
+            <Button onClick={onNext} aria-busy={pending} className="w-60">
+              {pending ? "Loading…" : shared ? "Get Your Report" : "Next"}
               <ArrowRight className="size-[22px]" />
             </Button>
+            {failure}
           </div>
         </Reveal>
 
@@ -118,8 +128,9 @@ export function Result({ pair, shared = false, description = blendDescription(pa
       </section>
 
       <div className="absolute inset-x-7 bottom-9 lg:hidden">
-        <Button onClick={onNext} className="w-full">
-          {shared ? "Take the Quiz" : "Get Your Report"}
+        {failure}
+        <Button onClick={onNext} aria-busy={pending} className="w-full">
+          {pending ? "Loading…" : "Get Your Report"}
           <ArrowRight className="size-5" />
         </Button>
       </div>

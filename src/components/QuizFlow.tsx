@@ -75,7 +75,7 @@ export function QuizFlow() {
   const screen = screenFromParams(params, total);
   // A link or refresh can point past the first unanswered question; send it back there.
   // ?step=result now lives at /result/<pair>; junk parameters (e.g. ?q=abc) are rewritten to the screen shown.
-  const redirect = ready ? redirectFor(screen, answers, total, result !== null) : null;
+  const redirect = ready ? redirectFor(screen, answers, total, result !== null, result?.shared) : null;
   const canonical = screenHref(screen);
   const redirectHref = !ready
     ? null
@@ -92,7 +92,7 @@ export function QuizFlow() {
 
   // The submitted answers, in the shape the API takes.
   const quizAnswers = useCallback(
-    (): QuizAnswer[] => (questions ?? []).map((q, i) => ({ question_id: q.id, question: q.text, answer: answers[i] })),
+    (): QuizAnswer[] => (questions ?? []).flatMap((q, i) => (answers[i] ? [{ question_id: q.id, question: q.text, answer: answers[i] }] : [])),
     [questions, answers],
   );
 

@@ -136,6 +136,8 @@ export type QuizResult = {
   pdfUrl?: string;
   /** `archedata` as the API returned it; saved with the submission as `result`, as the archetype app did. */
   archetypes: unknown[];
+  /** Opened from a shared link rather than scored from this person's answers. */
+  shared?: boolean;
 };
 
 /** "the indomitable spirit" (the database title) → "indomitable-spirit". */
